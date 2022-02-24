@@ -1,0 +1,28 @@
+{
+	"name": "personal-api",
+	"version": "1.0.0",
+	"description": "My API for personal projects",
+	"main": "source/server.ts",
+	"scripts": {
+		"start": "node dist/server.js",
+		"server": "nodemon source/server.ts",
+		"build": "rm -rf dist/ && tsc"
+	},
+	"author": "Prikenang PS",
+	"license": "MIT",
+	"dependencies": {
+		"colors": "^1.4.0",
+		"dotenv": "^16.0.0",
+		"express": "^4.17.3",
+		"mongoose": "^6.2.3",
+		"multer": "^1.4.4"
+	},
+	"devDependencies": {
+		"@types/dotenv": "^8.2.0",
+		"@types/express": "^4.17.13",
+		"@types/multer": "^1.4.7",
+		"@types/node": "^17.0.21",
+		"ts-node": "^10.5.0",
+		"typescript": "^4.5.5"
+	}
+}
