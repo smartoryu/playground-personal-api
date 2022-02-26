@@ -1,3 +1,4 @@
+import asyncHandler from 'express-async-handler';
 import { Router, Request, Response } from 'express';
 import { IController } from '../../utils';
 import { TodoService } from './todo_service';
@@ -21,58 +22,28 @@ export class TodoController implements IController {
 			.delete(this.deleteTodoById);
 	}
 
-	private createTodo = (req: Request, res: Response) => {
-		this.service
-			.postTodo(req.body)
-			.then(({ code, message, result }) => {
-				res.status(code).json({ message, result });
-			})
-			.catch((error) => {
-				throw new Error(`${error}`);
-			});
-	};
+	private createTodo = asyncHandler(async (req: Request, res: Response) => {
+		const { code, message, result } = await this.service.postTodo(req.body);
+		res.status(code).json({ message, result });
+	});
 
-	private getTodos = (req: Request, res: Response) => {
-		this.service
-			.getAllTodos()
-			.then(({ code, message, result }) => {
-				res.status(code).json({ message, result });
-			})
-			.catch((error: Error) => {
-				throw new Error(`${error}`);
-			});
-	};
+	private getTodos = asyncHandler(async (req: Request, res: Response) => {
+		const { code, message, result } = await this.service.getAllTodos();
+		res.status(code).json({ message, result });
+	});
 
-	private getTodoById = (req: Request, res: Response) => {
-		this.service
-			.getOneTodo(req.params.id)
-			.then(({ code, message, result }) => {
-				res.status(code).json({ message, result });
-			})
-			.catch((error: Error) => {
-				throw new Error(`${error}`);
-			});
-	};
+	private getTodoById = asyncHandler(async (req: Request, res: Response) => {
+		const { code, message, result } = await this.service.getOneTodo(req.params.id);
+		res.status(code).json({ message, result });
+	});
 
-	private updateTodoById = (req: Request, res: Response) => {
-		this.service
-			.putTodo(req.params.id)
-			.then(({ code, message, result }) => {
-				res.status(code).json({ message, result });
-			})
-			.catch((error: Error) => {
-				throw new Error(`${error}`);
-			});
-	};
+	private updateTodoById = asyncHandler(async (req: Request, res: Response) => {
+		const { code, message, result } = await this.service.putTodo(req.params.id);
+		res.status(code).json({ message, result });
+	});
 
-	private deleteTodoById = (req: Request, res: Response) => {
-		this.service
-			.deleteTodo(req.params.id)
-			.then(({ code, message, result }) => {
-				res.status(code).json({ message, result });
-			})
-			.catch((error: Error) => {
-				throw new Error(`${error}`);
-			});
-	};
+	private deleteTodoById = asyncHandler(async (req: Request, res: Response) => {
+		const { code, message, result } = await this.service.deleteTodo(req.params.id);
+		res.status(code).json({ message, result });
+	});
 }
