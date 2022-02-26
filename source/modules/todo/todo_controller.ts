@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { IController, logging } from '../../utils';
+import { IController } from '../../utils';
 import { TodoService } from './todo_service';
 
 export class TodoController implements IController {
@@ -28,10 +28,7 @@ export class TodoController implements IController {
 				res.status(code).json({ message, result });
 			})
 			.catch((error) => {
-				res.status(500).json({
-					message: 'Internal Server Error',
-					error
-				});
+				throw new Error(`${error}`);
 			});
 	};
 
@@ -42,10 +39,7 @@ export class TodoController implements IController {
 				res.status(code).json({ message, result });
 			})
 			.catch((error: Error) => {
-				res.status(500).json({
-					message: 'Internal Server Error',
-					error
-				});
+				throw new Error(`${error}`);
 			});
 	};
 
@@ -56,10 +50,7 @@ export class TodoController implements IController {
 				res.status(code).json({ message, result });
 			})
 			.catch((error: Error) => {
-				res.status(500).json({
-					message: 'Internal Server Error',
-					error
-				});
+				throw new Error(`${error}`);
 			});
 	};
 
@@ -70,10 +61,7 @@ export class TodoController implements IController {
 				res.status(code).json({ message, result });
 			})
 			.catch((error: Error) => {
-				res.status(500).json({
-					message: 'Internal Server Error',
-					error
-				});
+				throw new Error(`${error}`);
 			});
 	};
 
@@ -84,10 +72,7 @@ export class TodoController implements IController {
 				res.status(code).json({ message, result });
 			})
 			.catch((error: Error) => {
-				res.status(500).json({
-					message: 'Internal Server Error',
-					error
-				});
+				throw new Error(`${error}`);
 			});
 	};
 }

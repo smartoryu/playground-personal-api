@@ -18,25 +18,20 @@ export class TodoService implements ITodoService {
 	 * @returns any | unknown
 	 */
 	async postTodo(props: any) {
-		try {
-			let body = { ...props } as ITodoInput;
+		let body = { ...props } as ITodoInput;
 
-			if (!body.title) {
-				return {
-					code: 400,
-					message: 'Create Todo failed',
-					result: 'Title is required'
-				};
-			}
-
+		if (!body.title) {
 			return {
-				code: 200,
-				message: 'Todo Created',
-				result: dummySingleJson
+				code: 400,
+				message: 'Title is required'
 			};
-		} catch (error) {
-			throw new Error(`${error}`);
 		}
+
+		return {
+			code: 200,
+			message: 'Todo Created',
+			result: dummySingleJson
+		};
 	}
 
 	/**
@@ -62,11 +57,18 @@ export class TodoService implements ITodoService {
 	 */
 	async getOneTodo(id: string) {
 		try {
-			return {
-				code: 200,
-				message: 'Get Todo',
-				result: { ...dummySingleJson, title: `Todo ${id}` }
-			};
+			if (id === '1' || id === '2') {
+				return {
+					code: 200,
+					message: 'Get Todo',
+					result: { ...dummySingleJson, title: `Todo ${id}` }
+				};
+			} else {
+				return {
+					code: 404,
+					message: 'Todo Not Found'
+				};
+			}
 		} catch (error) {
 			throw new Error(`${error}`);
 		}
