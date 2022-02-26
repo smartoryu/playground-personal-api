@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 export { default as logging } from './logging';
+export * from './response';
 
 export interface IController {
 	path: String;

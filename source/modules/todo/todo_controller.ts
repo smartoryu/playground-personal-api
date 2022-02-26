@@ -38,7 +38,7 @@ export class TodoController implements IController {
 	});
 
 	private updateTodoById = asyncHandler(async (req: Request, res: Response) => {
-		const { code, message, result } = await this.service.putTodo(req.params.id);
+		const { code, message, result } = await this.service.putTodo(req.params.id, req.body);
 		res.status(code).json({ message, result });
 	});
 

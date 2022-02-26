@@ -1,49 +1,46 @@
-import { TReturnService } from '../../utils';
-
-interface ITodoInput {
-	title: string;
-}
+import { resConflict, resNotFound, TReturnService } from '../../utils';
+import { ITodoInput } from './todo_interface';
+import Todo, { TodoDocument } from './todo_model';
 
 interface ITodoService {
 	postTodo(body: ITodoInput): Promise<TReturnService>;
 	getAllTodos(): Promise<TReturnService>;
 	getOneTodo(id: string): Promise<TReturnService>;
-	putTodo(id: string): Promise<TReturnService>;
+	putTodo(id: string, body: TodoDocument): Promise<TReturnService>;
 	deleteTodo(id: string): Promise<TReturnService>;
 }
 
+const NAMESPACE = 'Todo';
 export class TodoService implements ITodoService {
 	/**
 	 * Create new todo and return it
-	 * @returns any | unknown
+	 * @returns TodoDocument
 	 */
 	async postTodo(props: any) {
-		let body = { ...props } as ITodoInput;
+		let body = props as ITodoInput;
+		if (!body.title) return resConflict('Title is required');
 
-		if (!body.title) {
-			return {
-				code: 400,
-				message: 'Title is required'
-			};
-		}
+		const createdTodo = await Todo.create({ title: body.title });
 
 		return {
 			code: 200,
 			message: 'Todo Created',
-			result: dummySingleJson
+			result: createdTodo
 		};
 	}
 
 	/**
 	 * Get all todos and return it
-	 * @returns any | unknown
+	 * @returns TodoDocument[]
 	 */
 	async getAllTodos() {
 		try {
+			const allTodos = await Todo.find().sort('-createdAt').exec();
+
 			return {
 				code: 200,
 				message: 'Get All Todos',
-				result: dummyArrayJson
+				result: allTodos
 			};
 		} catch (error) {
 			throw new Error(`${error}`);
@@ -53,22 +50,18 @@ export class TodoService implements ITodoService {
 	/**
 	 * Get a todo by ID and return it
 	 * @param id selected todo id
-	 * @returns any | unknown
+	 * @returns TodoDocument
 	 */
 	async getOneTodo(id: string) {
 		try {
-			if (id === '1' || id === '2') {
-				return {
-					code: 200,
-					message: 'Get Todo',
-					result: { ...dummySingleJson, title: `Todo ${id}` }
-				};
-			} else {
-				return {
-					code: 404,
-					message: 'Todo Not Found'
-				};
-			}
+			const singleTodo = await Todo.findById(id).exec();
+			if (!singleTodo) return resNotFound(NAMESPACE);
+
+			return {
+				code: 200,
+				message: 'Get Single Todo',
+				result: singleTodo
+			};
 		} catch (error) {
 			throw new Error(`${error}`);
 		}
@@ -77,14 +70,20 @@ export class TodoService implements ITodoService {
 	/**
 	 * Update a todo by ID and return it
 	 * @param id selected todo id
-	 * @returns any | unknown
+	 * @param body update object
+	 * @returns TodoDocument
 	 */
-	async putTodo(id: string) {
+	async putTodo(id: string, body: TodoDocument) {
 		try {
+			const singleTodo = await Todo.findById(id);
+			if (!singleTodo) return resNotFound(NAMESPACE);
+
+			const updatedTodo = await Todo.findByIdAndUpdate(id, body, { new: true }).exec();
+
 			return {
 				code: 200,
 				message: 'Todo Updated',
-				result: { ...dummySingleJson, title: `Todo ${id}` }
+				result: updatedTodo
 			};
 		} catch (error) {
 			throw new Error(`${error}`);
@@ -93,40 +92,23 @@ export class TodoService implements ITodoService {
 
 	/**
 	 * Delete a todo by ID and return it
-	 * @param id selected todo id
-	 * @returns any | unknown
+	 * @param id selected todo ids
+	 * @returns TodoDocument
 	 */
 	async deleteTodo(id: string) {
 		try {
+			const singleTodo = await Todo.findById(id);
+			if (!singleTodo) return resNotFound(NAMESPACE);
+
+			const deletedTodo = await Todo.findByIdAndDelete(id).exec();
+
 			return {
 				code: 200,
 				message: 'Todo Deleted',
-				result: { ...dummySingleJson, title: `Todo ${id}` }
+				result: deletedTodo
 			};
 		} catch (error) {
 			throw new Error(`${error}`);
 		}
 	}
 }
-
-const dummySingleJson = {
-	title: 'Todo 2',
-	isDone: false,
-	createdAt: '2022-02-25T19:15:20.000Z',
-	updatedAt: '2022-02-25T19:15:20.000Z'
-};
-
-const dummyArrayJson = [
-	{
-		title: 'Todo 1',
-		isDone: true,
-		createdAt: '2022-02-25T19:15:20.000Z',
-		updatedAt: '2022-02-25T19:15:20.000Z'
-	},
-	{
-		title: 'Todo 2',
-		isDone: false,
-		createdAt: '2022-02-25T19:15:20.000Z',
-		updatedAt: '2022-02-25T19:15:20.000Z'
-	}
-];
