@@ -2,6 +2,7 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import http from 'http';
+import mongoose from 'mongoose';
 import config from './configs';
 import { logging } from './utils';
 import API_MODULES from './modules';
@@ -10,6 +11,12 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app: Application = express();
 const NAMESPACE = 'SERVER';
+
+/**	Connect to MongoDB */
+mongoose
+	.connect(config.mongo.uri, config.mongo.options)
+	.then((_) => logging.info('DATABASE', 'Mongo Connected'))
+	.catch((err) => logging.error('DATABASE', { message: err.message, error: err }));
 
 /** Log the request & response */
 app.use((req, res, next) => {
@@ -45,7 +52,7 @@ app.use('/api', apiModules.router);
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 	/** internal logging */
 	logging.error(NAMESPACE, { message: err.message, stack: err.stack });
-	
+
 	/** adding stack on development enviroment */
 	let json: any = { message: 'Something went wrong', error: err.message };
 	if (process.env.NODE_ENV === 'development') json.stack = err.stack;

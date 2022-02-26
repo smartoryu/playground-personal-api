@@ -1,22 +1,28 @@
-const MONGO_OPTIONS = {
-	useUnifiedTopology: true,
-	useNewUrlParser: true,
-	socketTimeoutMS: 30000,
+import mongoose from 'mongoose';
+
+const MONGO_OPTIONS: mongoose.ConnectOptions = {
 	keepAlive: true,
-	poolSize: 50,
-	autoIndex: false,
-	retryWrites: false
+	retryWrites: false,
+	w: 'majority'
 };
 
 const MONGO_USERNAME = process.env.MONGO_USERNAME || 'prikenang';
-const MONGO_PASSWORD = process.env.MONGO_PASSWORD || '@BahagiaMongo';
-const MONGO_HOST = process.env.MONGO_HOST || ``;
-const MONGO_DATABASE = process.env.MONGO_DATABASE || '';
+const MONGO_PASSWORD = process.env.MONGO_PASSWORD || 'bahagia';
+const MONGO_HOST = process.env.MONGO_HOST || `personalcluster.beytk.mongodb.net`;
+const MONGO_DATABASE = process.env.MONGO_DATABASE || 'personaldb';
 
-export const MONGO = {
+interface IMongoConfig {
+	host: string;
+	password: string;
+	username: string;
+	options: mongoose.ConnectOptions;
+	uri: string;
+}
+
+export const MONGO: IMongoConfig = {
 	host: MONGO_HOST,
 	password: MONGO_PASSWORD,
 	username: MONGO_USERNAME,
 	options: MONGO_OPTIONS,
-	url: `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}/${MONGO_DATABASE}`
+	uri: `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}/${MONGO_DATABASE}`
 };
