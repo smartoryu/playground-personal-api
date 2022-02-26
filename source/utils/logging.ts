@@ -3,7 +3,7 @@ import colors from 'colors';
 type TLog = 'info' | 'warn' | 'error' | 'debug';
 
 interface ILogger {
-	message: Record<string, unknown>;
+	message: string | Record<string, unknown>;
 	namespace: string;
 	type: TLog;
 }
@@ -31,12 +31,12 @@ const logger = ({ message, namespace, type: logType }: ILogger) => {
 	let time = getTimeStamp();
 	let msg: string = `[${type}] - [${time}] - [${namespace}]`;
 	console.log(`\n------------------------------------------------------`);
-	console.log("|", color(msg), '\n');
+	console.log('|', color(msg), '\n');
 	console.log(message);
 	console.log(`------------------------------------------------------`);
 };
 
-const info = (namespace: string, message: Record<string, unknown>) => {
+const info = (namespace: string, message: string | Record<string, unknown>) => {
 	logger({ message, namespace, type: 'info' });
 };
 
