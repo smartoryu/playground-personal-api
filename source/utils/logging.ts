@@ -52,7 +52,7 @@ const debug = (namespace: string, message: Record<string, unknown>) => {
 	logger({ message, namespace, type: 'debug' });
 };
 
-export default {
+export const logging = {
 	info,
 	warn,
 	error,

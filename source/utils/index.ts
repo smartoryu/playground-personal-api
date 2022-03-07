@@ -1,15 +1,3 @@
-import { Router } from 'express';
-
-export { default as logging } from './logging';
-export * from './response';
-
-export interface IController {
-	path: String;
-	router: Router;
-}
-
-export type TReturnService = {
-	code: number;
-	result?: any;
-	message: string;
-};
+export * from './errors';
+export * from './global_interfaces';
+export * from './logging';

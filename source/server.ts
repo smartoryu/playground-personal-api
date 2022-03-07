@@ -4,9 +4,10 @@ import path from 'path';
 import http from 'http';
 import mongoose from 'mongoose';
 import config from './configs';
-import { logging } from './utils';
+import { CustomError, logging } from './utils';
 import API_MODULES from './modules';
 
+/** Change directory of .env file */
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app: Application = express();
@@ -47,16 +48,17 @@ app.use(express.json());
 /** Initiate routes */
 const apiModules = new API_MODULES();
 app.use('/api', apiModules.router);
+app.use('/', (req, res) => res.send('Your personal API is up and running!'));
 
 /** Error handling */
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
 	/** internal logging */
-	logging.error(NAMESPACE, { message: err.message, stack: err.stack });
+	logging.error(NAMESPACE, { ...err });
 
 	/** adding stack on development enviroment */
-	let json: any = { message: 'Something went wrong', error: err.message };
+	let json: any = { message: err.message, errors: err.errors, error: err.error };
 	if (process.env.NODE_ENV === 'development') json.stack = err.stack;
-	res.status(400).json(json);
+	res.status(err.statusCode || 500).json(json);
 });
 
 /** Create server */
