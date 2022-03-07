@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { IController } from '../utils';
+import { AdminController } from './admin/admin_controller';
 import { TodoController } from './todo/todo_controller';
 
 interface IApiModules {
@@ -12,7 +13,8 @@ export default class API_MODULES implements IApiModules {
 	path = '/';
 	router = Router();
 	controllers = [
-		new TodoController()
+		new TodoController(),
+		new AdminController()
 		//
 	];
 

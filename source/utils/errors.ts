@@ -1,6 +1,5 @@
 interface ICustomError {
 	statusCode?: number;
-	message?: string;
 	error?: any;
 	errors?: any;
 }
@@ -10,7 +9,7 @@ export class CustomError extends Error {
 	errors?: any;
 	statusCode: number;
 
-	constructor({ statusCode, message, error, errors }: ICustomError) {
+	constructor(message: string, { statusCode, error, errors }: ICustomError = {}) {
 		super(message || 'Something went wrong');
 
 		this.name = this.constructor.name;
@@ -22,7 +21,7 @@ export class CustomError extends Error {
 
 export class ValidationError extends CustomError {
 	constructor(errors?: any) {
-		super({ statusCode: 403, message: 'Validation Error' });
+		super('Validation Error', { statusCode: 403 });
 
 		this.getErrors(errors);
 	}
@@ -36,12 +35,12 @@ export class ValidationError extends CustomError {
 
 export class NotFoundError extends CustomError {
 	constructor(namespace: string, error?: string) {
-		super({ statusCode: 404, message: `${namespace} Not Found`, error });
+		super(`${namespace} Not Found`, { statusCode: 404, error });
 	}
 }
 
 export class ConflictError extends CustomError {
 	constructor(message?: string, error?: string) {
-		super({ statusCode: 409, message: message || 'Conflict', error });
+		super(message || 'Conflict', { statusCode: 409, error });
 	}
 }
