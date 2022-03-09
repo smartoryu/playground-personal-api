@@ -28,7 +28,7 @@ export class AdminService implements IAdminService {
 			if (err.name === 'ValidationError') throw new ValidationError(err.errors);
 			// Throw ConflictError if username is already registered
 			if (err.name === 'MongoServerError' && err.code === 11000) {
-				throw new ConflictError(err.name, 'Duplicate Username');
+				throw new ConflictError(err.name, 'Admin with this username already exists');
 			}
 			throw new CustomError('Something went wrong');
 		}
