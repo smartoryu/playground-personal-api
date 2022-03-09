@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import { Router, Request, Response } from 'express';
 import { IController } from '../../utils';
 import { AdminService } from './admin_service';
+import { AuthMiddleware } from '../auth/auth_middleware';
 
 interface IQueryAdmin {
 	username: string;
@@ -10,20 +11,25 @@ export class AdminController implements IController {
 	path = '/admins';
 	router = Router();
 	service: AdminService;
+	auth: AuthMiddleware;
 
 	constructor() {
+		this.auth = new AuthMiddleware();
+
 		this.initRouter();
 		this.service = new AdminService();
 	}
 
 	private initRouter() {
-		this.router.route(this.path).post(this.createAdmin).get(this.getAdmins);
+		const PROTECT = this.auth.protect;
+
+		this.router.route(this.path).post(this.createAdmin).get(PROTECT, this.getAdmins);
 		this.router
 			.route(this.path + '/:id')
-			.get(this.getAdminById)
-			.patch(this.updateAdminById)
-			.delete(this.deleteAdminById);
-		this.router.route(this.path + '/:id/change-password').patch(this.updatePassword);
+			.get(PROTECT, this.getAdminById)
+			.patch(PROTECT, this.updateAdminById)
+			.delete(PROTECT, this.deleteAdminById);
+		this.router.route(this.path + '/:id/change-password').patch(PROTECT, this.updatePassword);
 		this.router.route(this.path + '/reset-password').post(this.resetPassword);
 		this.router.route(this.path + '/login').post(this.loginAdmin);
 	}

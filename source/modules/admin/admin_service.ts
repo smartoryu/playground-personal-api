@@ -1,10 +1,10 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError, hashPassword } from '../../utils';
+import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError } from '../../utils';
+import { AuthService } from '../auth/auth_service';
 import { IAdminInput } from './admin_interface';
 import Admin, { AdminDocument } from './admin_model';
 
 interface IAdminService {
+	auth: AuthService;
 	postAdmin(body: IAdminInput): Promise<IReturnService>;
 	getAllAdmins(): Promise<IReturnService>;
 	getOneAdmin(id: string): Promise<IReturnService>;
@@ -17,6 +17,8 @@ interface IAdminService {
 
 const NAMESPACE = 'Admin';
 export class AdminService implements IAdminService {
+	auth = new AuthService();
+
 	/**
 	 * Create new admin and return it
 	 * @param props
@@ -32,7 +34,7 @@ export class AdminService implements IAdminService {
 			if (isUserExists) throw new ConflictError(NAMESPACE, 'Admin with this username  already exists');
 
 			// Hash password
-			const hashedPassword = await hashPassword(body.password);
+			const hashedPassword = await this.auth.hashPW(body.password);
 
 			// Create new admin and remove password from response
 			const createdAdmin = await Admin.create({ ...body, password: hashedPassword });
@@ -129,7 +131,7 @@ export class AdminService implements IAdminService {
 		}
 
 		// Throw CustomError if old password is incorrect
-		if (!(await bcrypt.compare(oldPassword, singleAdmin.password))) {
+		if (!(await this.auth.comparePW(oldPassword, singleAdmin.password))) {
 			throw new CustomError('Something went wrong', {
 				statusCode: 401,
 				errors: { oldPassword: 'Old Password is incorrect' }
@@ -137,7 +139,7 @@ export class AdminService implements IAdminService {
 		}
 
 		// Throw CustomError if new password is the same as old password
-		if (await bcrypt.compare(newPassword, singleAdmin.password)) {
+		if (await this.auth.comparePW(newPassword, singleAdmin.password)) {
 			throw new CustomError('Something went wrong', {
 				statusCode: 401,
 				errors: {
@@ -147,7 +149,7 @@ export class AdminService implements IAdminService {
 		}
 
 		// Hash password
-		const hashedPassword = await hashPassword(newPassword);
+		const hashedPassword = await this.auth.hashPW(newPassword);
 
 		const updatedAdmin = await Admin.findByIdAndUpdate(id, { password: hashedPassword }, { new: true }).exec();
 
@@ -189,7 +191,7 @@ export class AdminService implements IAdminService {
 		if (!singleAdmin) throw new NotFoundError(NAMESPACE);
 
 		// Throw CustomError if password is incorrect
-		if (!(await bcrypt.compare(password, singleAdmin.password))) {
+		if (!(await this.auth.comparePW(password, singleAdmin.password))) {
 			throw new CustomError('Something went wrong', {
 				statusCode: 400,
 				errors: { password: 'Password is incorrect' }
@@ -197,13 +199,7 @@ export class AdminService implements IAdminService {
 		}
 
 		// Generate token with jwt
-		const token = jwt.sign(
-			{
-				id: singleAdmin._id
-			},
-			process.env.JWT_SECRET || '',
-			{ expiresIn: process.env.JWT_EXPIRES_IN }
-		);
+		const token = this.auth.generateToken(singleAdmin._id);
 
 		return {
 			statusCode: 200,
@@ -215,7 +211,7 @@ export class AdminService implements IAdminService {
 
 	/**
 	 * Reset admin's password by username
-	 * @param username 
+	 * @param username
 	 * @returns randomly generated temporary password
 	 */
 	async postResetPasswordWithTempPassword(username: string) {
@@ -226,7 +222,7 @@ export class AdminService implements IAdminService {
 		const temporaryPW: string = Math.random().toString(36).slice(4, 12);
 
 		// Hash password
-		const hashedPassword = await hashPassword(temporaryPW);
+		const hashedPassword = await this.auth.hashPW(temporaryPW);
 
 		// Update admin's password
 		await Admin.updateOne({ username }, { password: hashedPassword }, { new: true }).exec();
