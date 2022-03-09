@@ -1,4 +1,4 @@
-import { IReturnService, NotFoundError } from '../../utils';
+import { CustomError, IReturnService, NotFoundError, ValidationError } from '../../utils';
 import { ITodoInput } from './todo_interface';
 import Todo, { TodoDocument } from './todo_model';
 
@@ -17,13 +17,22 @@ export class TodoService implements ITodoService {
 	 * @returns TodoDocument
 	 */
 	async postTodo(body: ITodoInput) {
-		const createdTodo = await Todo.create({ title: body.title });
+		try {
+			const createdTodo = await Todo.create({
+				title: body.title,
+				createdBy: body.createdBy
+			});
 
-		return {
-			statusCode: 200,
-			message: 'Todo Created',
-			result: createdTodo
-		};
+			return {
+				statusCode: 200,
+				message: 'Todo Created',
+				result: createdTodo
+			};
+		} catch (err: any) {
+			// Throw ValidationError if validation (based on model) fails
+			if (err.name === 'ValidationError') throw new ValidationError(err.errors);
+			throw new CustomError('Something went wrong');
+		}
 	}
 
 	/**
@@ -31,7 +40,7 @@ export class TodoService implements ITodoService {
 	 * @returns TodoDocument[]
 	 */
 	async getAllTodos() {
-		const allTodos = await Todo.find().sort('-createdAt').exec();
+		const allTodos = await Todo.find().populate(['createdBy', 'lastEditBy']).sort('-createdAt').exec();
 
 		return {
 			statusCode: 200,
@@ -46,7 +55,7 @@ export class TodoService implements ITodoService {
 	 * @returns TodoDocument
 	 */
 	async getOneTodo(id: string) {
-		const singleTodo = await Todo.findById(id).exec();
+		const singleTodo = await Todo.findById(id).populate(['createdBy', 'lastEditBy']).exec();
 		if (!singleTodo) throw new NotFoundError(NAMESPACE);
 
 		return {
