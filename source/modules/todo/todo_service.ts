@@ -3,10 +3,10 @@ import { ITodoInput } from './todo_interface';
 import Todo, { TodoDocument } from './todo_model';
 
 interface ITodoService {
-	postTodo(body: ITodoInput): Promise<IReturnService>;
+	postTodo(adminId: string, body: ITodoInput): Promise<IReturnService>;
 	getAllTodos(): Promise<IReturnService>;
 	getOneTodo(id: string): Promise<IReturnService>;
-	putTodo(id: string, body: TodoDocument): Promise<IReturnService>;
+	putTodo(id: string, adminId: string, body: TodoDocument): Promise<IReturnService>;
 	deleteTodo(id: string): Promise<IReturnService>;
 }
 
@@ -16,11 +16,11 @@ export class TodoService implements ITodoService {
 	 * Create new todo and return it
 	 * @returns TodoDocument
 	 */
-	async postTodo(body: ITodoInput) {
+	async postTodo(adminId: string, body: ITodoInput) {
 		try {
 			const createdTodo = await Todo.create({
 				title: body.title,
-				createdBy: body.createdBy
+				createdBy: adminId
 			});
 
 			return {
@@ -71,8 +71,8 @@ export class TodoService implements ITodoService {
 	 * @param body update object
 	 * @returns TodoDocument
 	 */
-	async putTodo(id: string, body: TodoDocument) {
-		const updatedTodo = await Todo.findByIdAndUpdate(id, body, { new: true }).exec();
+	async putTodo(id: string, adminId: string, body: TodoDocument) {
+		const updatedTodo = await Todo.findByIdAndUpdate(id, { ...body, lastEditBy: adminId }, { new: true }).exec();
 		if (!updatedTodo) throw new NotFoundError(NAMESPACE);
 
 		return {

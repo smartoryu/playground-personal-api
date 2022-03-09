@@ -3,7 +3,7 @@ import { IAdmin } from '../admin/admin_interface';
 
 export interface ITodo extends Document {
 	title: string;
-	createdBy: IAdmin | string;
+	createdBy: IAdmin | string | null;
 	lastEditBy: IAdmin | string | null;
 	isDone: boolean;
 }

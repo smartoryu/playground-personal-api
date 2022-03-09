@@ -6,7 +6,7 @@ import { AuthService } from './auth_service';
 declare global {
 	namespace Express {
 		interface Request {
-			decoded: string | JwtPayload;
+			decoded: string;
 		}
 	}
 }

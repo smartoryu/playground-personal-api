@@ -5,7 +5,7 @@ import { ITodo } from './todo_interface';
 const TodoSchema: Schema = new Schema<ITodo>(
 	{
 		title: { type: String, required: [true, 'Title is required'] },
-		createdBy: { type: Types.ObjectId, required: [true, 'CreatedBy is required'], ref: 'Admin' },
+		createdBy: { type: Types.ObjectId, ref: 'Admin', default: null },
 		lastEditBy: { type: Types.ObjectId, ref: 'Admin', default: null },
 		isDone: { type: Boolean, default: false }
 	},

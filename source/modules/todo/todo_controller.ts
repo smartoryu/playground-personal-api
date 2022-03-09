@@ -2,28 +2,34 @@ import asyncHandler from 'express-async-handler';
 import { Router, Request, Response } from 'express';
 import { IController } from '../../utils';
 import { TodoService } from './todo_service';
+import { AuthMiddleware } from '../auth/auth_middleware';
 
 export class TodoController implements IController {
 	path = '/todos';
 	router = Router();
 	service: TodoService;
+	auth: AuthMiddleware;
 
 	constructor() {
+		this.auth = new AuthMiddleware();
+
 		this.initRouter();
 		this.service = new TodoService();
 	}
 
 	private initRouter() {
-		this.router.route(this.path).post(this.createTodo).get(this.getTodos);
+		const PROTECT = this.auth.protect;
+
+		this.router.route(this.path).post(PROTECT, this.createTodo).get(PROTECT, this.getTodos);
 		this.router
 			.route(this.path + '/:id')
-			.get(this.getTodoById)
-			.put(this.updateTodoById)
-			.delete(this.deleteTodoById);
+			.get(PROTECT, this.getTodoById)
+			.put(PROTECT, this.updateTodoById)
+			.delete(PROTECT, this.deleteTodoById);
 	}
 
 	private createTodo = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, ...result } = await this.service.postTodo(req.body);
+		const { statusCode, ...result } = await this.service.postTodo(req.decoded, req.body);
 		res.status(statusCode).json(result);
 	});
 
@@ -38,7 +44,7 @@ export class TodoController implements IController {
 	});
 
 	private updateTodoById = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, ...result } = await this.service.putTodo(req.params.id, req.body);
+		const { statusCode, ...result } = await this.service.putTodo(req.params.id, req.decoded, req.body);
 		res.status(statusCode).json(result);
 	});
 
