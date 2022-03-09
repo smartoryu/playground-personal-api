@@ -1,4 +1,6 @@
-import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError } from '../../utils';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError, hashPassword } from '../../utils';
 import { IAdminInput } from './admin_interface';
 import Admin, { AdminDocument } from './admin_model';
 
@@ -6,8 +8,11 @@ interface IAdminService {
 	postAdmin(body: IAdminInput): Promise<IReturnService>;
 	getAllAdmins(): Promise<IReturnService>;
 	getOneAdmin(id: string): Promise<IReturnService>;
-	putAdmin(id: string, body: AdminDocument): Promise<IReturnService>;
+	patchAdmin(id: string, body: AdminDocument): Promise<IReturnService>;
+	patchPassword(id: string, oldPassword: string, newPassword: string): Promise<IReturnService>;
 	deleteAdmin(id: string): Promise<IReturnService>;
+	postLoginAdmin(username: string, password: string): Promise<IReturnService>;
+	postResetPasswordWithTempPassword(username: string): Promise<IReturnService>;
 }
 
 const NAMESPACE = 'Admin';
@@ -19,10 +24,21 @@ export class AdminService implements IAdminService {
 	 */
 	async postAdmin(props: any) {
 		let body = props as IAdminInput;
+		body.username = body.username.split(' ').join('_').toLowerCase();
 
 		try {
-			const createdAdmin = await Admin.create(body);
-			return { statusCode: 200, message: 'Admin Created', result: createdAdmin };
+			// Check if username is already registered
+			const isUserExists = await Admin.findOne({ username: body.username }).exec();
+			if (isUserExists) throw new ConflictError(NAMESPACE, 'Admin with this username  already exists');
+
+			// Hash password
+			const hashedPassword = await hashPassword(body.password);
+
+			// Create new admin and remove password from response
+			const createdAdmin = await Admin.create({ ...body, password: hashedPassword });
+			const { password, ...result } = createdAdmin.toJSON();
+
+			return { statusCode: 200, message: 'Admin Created', result };
 		} catch (err: any) {
 			// Throw ValidationError if validation (based on model) fails
 			if (err.name === 'ValidationError') throw new ValidationError(err.errors);
@@ -39,7 +55,7 @@ export class AdminService implements IAdminService {
 	 * @returns AdminDocument[]
 	 */
 	async getAllAdmins() {
-		const allAdmins = await Admin.find().sort('-createdAt').exec();
+		const allAdmins = await Admin.find().sort('-updatedAt').exec();
 
 		return {
 			statusCode: 200,
@@ -70,10 +86,13 @@ export class AdminService implements IAdminService {
 	 * @param body selected admin data
 	 * @returns AdminDocument
 	 */
-	async putAdmin(id: string, body: AdminDocument) {
+	async patchAdmin(id: string, body: AdminDocument) {
 		try {
-			const updatedAdmin = await Admin.findByIdAndUpdate(id, body, { new: true }).exec();
+			const { password, ...bodyWithoutPW } = body;
+
+			const updatedAdmin = await Admin.findByIdAndUpdate(id, bodyWithoutPW, { new: true }).exec();
 			if (!updatedAdmin) throw new NotFoundError(NAMESPACE);
+
 			return {
 				statusCode: 200,
 				message: 'Admin Updated',
@@ -97,11 +116,11 @@ export class AdminService implements IAdminService {
 	 * @param newPassword provided new password
 	 * @returns AdminDocument
 	 */
-	async putPassword(id: string, oldPassword: string, newPassword: string) {
+	async patchPassword(id: string, oldPassword: string, newPassword: string) {
 		const singleAdmin = await Admin.findById(id).exec();
 		if (!singleAdmin) throw new NotFoundError(NAMESPACE);
 
-		// Throw ValidationError if old and/or new password is not provided
+		// Throw ValidationError if oldPassword and/or newPassword is not provided
 		if (!oldPassword || !newPassword) {
 			let errors: any = {};
 			if (!oldPassword) errors.oldPassword = 'Old Password is required';
@@ -109,8 +128,8 @@ export class AdminService implements IAdminService {
 			throw new CustomError('Validation Error', { statusCode: 401, errors });
 		}
 
-		// Throw CustomError if old password is not correct
-		if (oldPassword !== singleAdmin.password) {
+		// Throw CustomError if old password is incorrect
+		if (!(await bcrypt.compare(oldPassword, singleAdmin.password))) {
 			throw new CustomError('Something went wrong', {
 				statusCode: 401,
 				errors: { oldPassword: 'Old Password is incorrect' }
@@ -118,16 +137,19 @@ export class AdminService implements IAdminService {
 		}
 
 		// Throw CustomError if new password is the same as old password
-		if (oldPassword === newPassword) {
+		if (await bcrypt.compare(newPassword, singleAdmin.password)) {
 			throw new CustomError('Something went wrong', {
 				statusCode: 401,
 				errors: {
-					newPassword: 'The new password you entered is the same as the old password. Enter a different password.'
+					newPassword: 'The new password you entered is the same as the old password. Enter a different one.'
 				}
 			});
 		}
 
-		const updatedAdmin = await Admin.findByIdAndUpdate(id, { password: newPassword }, { new: true }).exec();
+		// Hash password
+		const hashedPassword = await hashPassword(newPassword);
+
+		const updatedAdmin = await Admin.findByIdAndUpdate(id, { password: hashedPassword }, { new: true }).exec();
 
 		return {
 			statusCode: 200,
@@ -149,6 +171,69 @@ export class AdminService implements IAdminService {
 			statusCode: 200,
 			message: 'Admin Deleted',
 			result: deletedAdmin
+		};
+	}
+
+	/**
+	 * Login admin with username and password
+	 * @param username
+	 * @param password
+	 * @returns AdminDocument with generated token
+	 */
+	async postLoginAdmin(username: string, password: string) {
+		// Throw CustomError if username or password is not available
+		if (!username || !password) throw new CustomError('Username and Password are required');
+
+		// Find admin by username
+		const singleAdmin = await Admin.findOne({ username }).exec();
+		if (!singleAdmin) throw new NotFoundError(NAMESPACE);
+
+		// Throw CustomError if password is incorrect
+		if (!(await bcrypt.compare(password, singleAdmin.password))) {
+			throw new CustomError('Something went wrong', {
+				statusCode: 400,
+				errors: { password: 'Password is incorrect' }
+			});
+		}
+
+		// Generate token with jwt
+		const token = jwt.sign(
+			{
+				id: singleAdmin._id
+			},
+			process.env.JWT_SECRET || '',
+			{ expiresIn: process.env.JWT_EXPIRES_IN }
+		);
+
+		return {
+			statusCode: 200,
+			message: 'Admin Logged In',
+			result: singleAdmin,
+			token
+		};
+	}
+
+	/**
+	 * Reset admin's password by username
+	 * @param username 
+	 * @returns randomly generated temporary password
+	 */
+	async postResetPasswordWithTempPassword(username: string) {
+		const isUserExists = await Admin.findOne({ username }).exec();
+		if (!isUserExists) throw new NotFoundError(NAMESPACE);
+
+		// Create a new temp password
+		const temporaryPW: string = Math.random().toString(36).slice(4, 12);
+
+		// Hash password
+		const hashedPassword = await hashPassword(temporaryPW);
+
+		// Update admin's password
+		await Admin.updateOne({ username }, { password: hashedPassword }, { new: true }).exec();
+		return {
+			statusCode: 200,
+			message: 'Password Admin has been reset',
+			result: temporaryPW
 		};
 	}
 }
