@@ -23,27 +23,27 @@ export class TodoController implements IController {
 	}
 
 	private createTodo = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, message, result } = await this.service.postTodo(req.body);
-		res.status(statusCode).json({ message, result });
+		const { statusCode, ...result } = await this.service.postTodo(req.body);
+		res.status(statusCode).json(result);
 	});
 
 	private getTodos = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, message, result } = await this.service.getAllTodos();
-		res.status(statusCode).json({ message, result });
+		const { statusCode, ...result } = await this.service.getAllTodos();
+		res.status(statusCode).json(result);
 	});
 
 	private getTodoById = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, message, result } = await this.service.getOneTodo(req.params.id);
-		res.status(statusCode).json({ message, result });
+		const { statusCode, ...result } = await this.service.getOneTodo(req.params.id);
+		res.status(statusCode).json(result);
 	});
 
 	private updateTodoById = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, message, result } = await this.service.putTodo(req.params.id, req.body);
-		res.status(statusCode).json({ message, result });
+		const { statusCode, ...result } = await this.service.putTodo(req.params.id, req.body);
+		res.status(statusCode).json(result);
 	});
 
 	private deleteTodoById = asyncHandler(async (req: Request, res: Response) => {
-		const { statusCode, message, result } = await this.service.deleteTodo(req.params.id);
-		res.status(statusCode).json({ message, result });
+		const { statusCode, ...result } = await this.service.deleteTodo(req.params.id);
+		res.status(statusCode).json(result);
 	});
 }
