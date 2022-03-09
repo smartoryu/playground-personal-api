@@ -71,14 +71,23 @@ export class AdminService implements IAdminService {
 	 * @returns AdminDocument
 	 */
 	async putAdmin(id: string, body: AdminDocument) {
-		const updatedAdmin = await Admin.findByIdAndUpdate(id, body, { new: true }).exec();
-		if (!updatedAdmin) throw new NotFoundError(NAMESPACE);
-
-		return {
-			statusCode: 200,
-			message: 'Admin Updated',
-			result: updatedAdmin
-		};
+		try {
+			const updatedAdmin = await Admin.findByIdAndUpdate(id, body, { new: true }).exec();
+			if (!updatedAdmin) throw new NotFoundError(NAMESPACE);
+			return {
+				statusCode: 200,
+				message: 'Admin Updated',
+				result: updatedAdmin
+			};
+		} catch (err: any) {
+			// Throw ValidationError if validation (based on model) fails
+			if (err.name === 'ValidationError') throw new ValidationError(err.errors);
+			// Throw ConflictError if username is already registered
+			if (err.name === 'MongoServerError' && err.code === 11000) {
+				throw new ConflictError(err.name, 'Duplicate Username');
+			}
+			throw new CustomError('Something went wrong');
+		}
 	}
 
 	/**
