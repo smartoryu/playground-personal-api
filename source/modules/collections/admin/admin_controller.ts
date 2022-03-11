@@ -1,8 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { Router, Request, Response } from 'express';
-import { IController } from '../../utils';
+import { IController } from '../../../utils';
 import { AdminService } from './admin_service';
-import { AuthMiddleware } from '../auth/auth_middleware';
+import { AuthMiddleware } from '../../auth/auth_middleware';
 
 interface IQueryAdmin {
 	username: string;

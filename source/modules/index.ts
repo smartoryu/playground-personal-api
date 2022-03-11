@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { IController } from '../utils';
-import { AdminController } from './admin/admin_controller';
-import { TodoController } from './todo/todo_controller';
+import { AdminController } from './collections/admin/admin_controller';
+import { TodoController } from './collections/todo/todo_controller';
 
 interface IApiModules {
 	path: String;

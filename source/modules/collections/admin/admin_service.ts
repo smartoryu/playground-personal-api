@@ -1,5 +1,5 @@
-import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError } from '../../utils';
-import { AuthService } from '../auth/auth_service';
+import { IReturnService, ValidationError, CustomError, NotFoundError, ConflictError } from '../../../utils';
+import { AuthService } from '../../auth/auth_service';
 import { IAdminInput } from './admin_interface';
 import Admin, { AdminDocument } from './admin_model';
 

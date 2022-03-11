@@ -1,4 +1,4 @@
-import { CustomError, IReturnService, NotFoundError, ValidationError } from '../../utils';
+import { CustomError, IReturnService, NotFoundError, ValidationError } from '../../../utils';
 import { ITodoInput } from './todo_interface';
 import Todo, { TodoDocument } from './todo_model';
 

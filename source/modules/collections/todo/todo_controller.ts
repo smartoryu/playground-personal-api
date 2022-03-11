@@ -1,8 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { Router, Request, Response } from 'express';
-import { IController } from '../../utils';
+import { IController } from '../../../utils';
 import { TodoService } from './todo_service';
-import { AuthMiddleware } from '../auth/auth_middleware';
+import { AuthMiddleware } from '../../auth/auth_middleware';
 
 export class TodoController implements IController {
 	path = '/todos';
