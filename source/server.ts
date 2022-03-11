@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import http from 'http';
 import mongoose from 'mongoose';
-import config from './configs';
+import configs from './configs';
 import { CustomError, logging } from './utils';
 import API_MODULES from './modules';
 
@@ -15,7 +15,7 @@ const NAMESPACE = 'SERVER';
 
 /**	Connect to MongoDB */
 mongoose
-	.connect(config.mongo.uri, config.mongo.options)
+	.connect(configs.mongo.uri, configs.mongo.options)
 	.then((_) => logging.info('DATABASE', 'Mongo Connected'))
 	.catch((err) => logging.error('DATABASE', { message: err.message, error: err }));
 
@@ -65,8 +65,8 @@ app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
 const httpServer = http.createServer(app);
 
 /** Listen server */
-httpServer.listen(config.server.port, () => {
-	logging.info(NAMESPACE, { message: `Server is running on ${config.server.hostname}:${config.server.port}` });
+httpServer.listen(configs.server.port, () => {
+	logging.info(NAMESPACE, { message: `Server is running on ${configs.server.hostname}:${configs.server.port}` });
 });
 
 /** Set server timeout */
