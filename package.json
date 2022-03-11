@@ -1,6 +1,6 @@
 {
 	"name": "personal-api",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "My API for personal projects",
 	"main": "source/server.ts",
 	"scripts": {
