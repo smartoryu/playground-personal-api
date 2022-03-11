@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from 'express-async-handler';
 import { JwtPayload } from 'jsonwebtoken';
+import Admin from '../collections/admin/admin_model';
 import { AuthService } from './auth_service';
 
 declare global {
@@ -42,6 +43,15 @@ export class AuthMiddleware {
 			}
 		} else {
 			// Send 401 status if token is not available
+			res.status(401).json({ message: 'You are not authorized to access this resource.' });
+		}
+	});
+
+	adminOnly = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+		const user = await Admin.findById(req.decoded);
+		if (user && user.role === 'super') {
+			next();
+		} else {
 			res.status(401).json({ message: 'You are not authorized to access this resource.' });
 		}
 	});

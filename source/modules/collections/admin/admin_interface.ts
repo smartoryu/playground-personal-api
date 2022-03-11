@@ -6,7 +6,7 @@ export interface IAdmin extends Document {
 	password: string;
 	photo: string;
 	code: string;
-	role: string;
+	role: 'super' | 'guest';
 }
 
 export interface IAdminInput extends Document {

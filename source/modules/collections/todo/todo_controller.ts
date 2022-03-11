@@ -19,13 +19,14 @@ export class TodoController implements IController {
 
 	private initRouter() {
 		const PROTECT = this.auth.protect;
+		const ADMIN_ONLY = this.auth.adminOnly;
 
 		this.router.route(this.path).post(PROTECT, this.createTodo).get(PROTECT, this.getTodos);
 		this.router
 			.route(this.path + '/:id')
 			.get(PROTECT, this.getTodoById)
 			.put(PROTECT, this.updateTodoById)
-			.delete(PROTECT, this.deleteTodoById);
+			.delete(PROTECT, ADMIN_ONLY, this.deleteTodoById);
 	}
 
 	private createTodo = asyncHandler(async (req: Request, res: Response) => {
