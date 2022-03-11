@@ -11,3 +11,8 @@ export interface IReturnService {
 	error?: any;
 	message: string;
 }
+
+export interface ICronJob {
+	time: string;
+	action: () => void | Promise<void>;
+}
