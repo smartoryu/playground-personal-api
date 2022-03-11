@@ -28,11 +28,11 @@ export class AdminService implements IAdminService {
 		let body = props as IAdminInput;
 		body.username = body.username.split(' ').join('_').toLowerCase();
 
-		try {
-			// Check if username is already registered
-			const isUserExists = await Admin.findOne({ username: body.username }).exec();
-			if (isUserExists) throw new ConflictError(NAMESPACE, 'Admin with this username  already exists');
+		// Check if username is already registered
+		const isUserExists = await Admin.findOne({ username: body.username }).exec();
+		if (isUserExists) throw new ConflictError(NAMESPACE, 'Admin with this username already exists');
 
+		try {
 			// Hash password
 			const hashedPassword = await this.auth.hashPW(body.password);
 
