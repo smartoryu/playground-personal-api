@@ -36,9 +36,13 @@ export class AuthMiddleware {
 				const decoded = this.service.verifyToken(token);
 				req.decoded = decoded.id;
 
+				// Find if user exists
+				const user = await Admin.findById(req.decoded);
+				if (!user) res.status(401).json({ message: 'Authorization invalid.' });
+
 				next();
 			} catch (err) {
-				// Send 401 status if token is not valid
+				// Send 401 status if token is expired
 				res.status(401).json({ message: 'Authorization expired.' });
 			}
 		} else {
